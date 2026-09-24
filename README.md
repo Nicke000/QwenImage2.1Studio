@@ -22,14 +22,17 @@
 │   └── favicon.svg
 ├── workflows/                   # ComfyUI 工作流（文生图/图生图/抠图/放大…）
 ├── scripts/
-│   ├── start-all.sh             # 开机自启：模型软链接自愈 → ComfyUI → FastAPI
+│   ├── start-all.sh             # 启动：模型软链接自愈 → ComfyUI → FastAPI
+│   ├── autodl.sh                # 开机自启钩子 → 安装为 /etc/autodl.sh（AutoDL 官方机制）
 │   ├── prepublish.sh            # 保存镜像前清理（个人图片 / 日志 / 令牌）
-│   ├── rc.local                 # AutoDL 容器开机执行入口
+│   ├── rc.local                 # 兼容保留（部分镜像环境会执行 rc.local）
 │   └── qwen-studio.service      # 有 systemd 的环境可选用的单元文件
 ├── tools/
-│   └── check_env.py             # 环境自检（依赖 / 模型软链接 / 工作流 / 端口）
+│   ├── check_env.py             # 环境自检（依赖 / 模型软链接 / 工作流 / 端口）
+│   └── fetch_models.py          # 模型下载工具（公共模型库不可用时的兜底）
 └── docs/
-    └── AUTODL-镜像发布指南.md    # 镜像发布与克隆用户使用说明
+    ├── AUTODL-镜像发布指南.md    # 镜像发布与克隆用户使用说明
+    └── 镜像README.md             # 发布页「镜像说明」可直接粘贴的文案
 ```
 
 ---

@@ -47,14 +47,20 @@ cp -f "$REPO"/workflows/*.json "$COMFY/user/default/workflows/" 2>/dev/null || t
 echo "[5/6] 部署启动/清理脚本"
 cp -f "$REPO/scripts/start-all.sh" /root/start-all.sh
 cp -f "$REPO/scripts/prepublish.sh" /root/prepublish.sh
+[ -f "$REPO/tools/fetch_models.py" ] && cp -f "$REPO/tools/fetch_models.py" /root/fetch_models.py
 chmod +x /root/start-all.sh /root/prepublish.sh
 
-# ---- 开机自启 ----
-echo "[6/6] 配置开机自启 /etc/rc.local"
-cp -f "$REPO/scripts/rc.local" /etc/rc.local
-chmod +x /etc/rc.local
+# ---- 开机自启（AutoDL 官方钩子）----
+# AutoDL 容器无 systemd，/etc/rc.local 不会被自动执行；
+# 官方机制是 /init/bin/customer.cmd.sh 在开机时执行 /etc/autodl.sh
+echo "[6/6] 配置开机自启 /etc/autodl.sh"
+cp -f "$REPO/scripts/autodl.sh" /etc/autodl.sh
+chmod +x /etc/autodl.sh
+# 兼容：部分镜像环境仍会执行 rc.local，一并写入
+[ -f "$REPO/scripts/rc.local" ] && cp -f "$REPO/scripts/rc.local" /etc/rc.local && chmod +x /etc/rc.local
 
 echo "===== 部署完成 ====="
 echo "启动:    bash /root/start-all.sh"
 echo "自检:    python3 $REPO/tools/check_env.py"
 echo "端口:    6008 = 应用（映射此端口）  6006 = ComfyUI（默认仅内网）"
+echo "开机自启: /etc/autodl.sh（AutoDL 由 /init/bin/customer.cmd.sh 调用）"

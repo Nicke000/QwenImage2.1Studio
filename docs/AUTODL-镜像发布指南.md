@@ -13,8 +13,13 @@
 | 后端 FastAPI | `/root/qwen-server.py` | GPU 检测 / /api/stats / 防爆显存，监听 0.0.0.0:6008 |
 | 前端单文件 | `/root/qwen-web/index.html` | GPU 自适应 + 顶栏实时性能条 |
 | 自启脚本 | `/root/start-all.sh` | 模型软链接自愈 → 拉起 ComfyUI + FastAPI |
-| 系统自启 | `/etc/rc.local` + `/root/.bashrc` 兜底 | 容器开机自动执行 start-all.sh |
+| **开机自启** | **`/etc/autodl.sh`** | **AutoDL 官方钩子**：`/init/bin/customer.cmd.sh` 开机时调用它 |
 | 模型软链接 | `/root/ComfyUI/models/{diffusion_models,text_encoders,vae}` | 指向公共库 hash 路径（内容寻址） |
+
+> **重要**：AutoDL 容器**不会执行 `/etc/rc.local`**（旧的 rc.local + .bashrc 方案无效）。
+> 官方开机钩子是 `/etc/autodl.sh`，由 `/init/bin/customer.cmd.sh` 在开机时执行，
+> 日志见 `/tmp/autodl.sh.log`。本项目通过 `scripts/autodl.sh` 安装该钩子。
+> 开机自启效果自检：`cat /tmp/autodl.sh.log` + `curl -s http://127.0.0.1:6008/api/ping`。
 
 > 镜像内的软链接指向 `/.autodl/<hash>` 公共库路径。该路径是**内容寻址**的：
 > 任何用户在实例上挂载同一公共库模型后，路径一致，软链接自动生效；
@@ -56,12 +61,12 @@ AutoDL 控制台 → 实例 → 更多操作 → **保存镜像**
 
 ### 2. 开机即用（零配置）
 
-实例开机后，`/etc/rc.local` 自动执行 `/root/start-all.sh`：
+实例开机后，AutoDL 官方钩子 `/etc/autodl.sh` 自动执行 `/root/start-all.sh`：
 
-1. 自愈模型软链接（如失效则从公共库找回）
-2. 启动 ComfyUI → `0.0.0.0:6006`
+1. 自愈模型软链接（公共模型库 → 数据盘副本）
+2. 启动 ComfyUI → `127.0.0.1:6006`（默认仅内网）
 3. 启动 Qwen Image Studio → `0.0.0.0:6008`
-4. 日志：`/root/qwen-studio-start.log`、`/root/qwen-server.log`、`/root/comfyui.log`
+4. 日志：`/tmp/autodl.sh.log`、`/root/qwen-studio-start.log`、`/root/qwen-server.log`、`/root/comfyui.log`
 
 等待约 30~60 秒后：
 - SSH 执行 `curl -s http://127.0.0.1:6008/api/ping` 应返回 `{"ok":true,...}`
@@ -108,10 +113,10 @@ AutoDL 控制台 → 实例 → **自定义服务**：
 | 提交后提示「队列已满」 | 排队上限 8，稍后再试 |
 | 「高质量」置灰 | 当前显卡显存不足（BF16 需 ≥28GB 才稳），属正常防爆显存 |
 | 生成任务一直「排队中」不动 | 查看 `/root/qwen-server.log`；如 worker 未启动，执行 `bash /root/start-all.sh` |
-| 重启实例后服务没起来 | 检查 `/root/rc-local.log`；确认 rc.local 存在且可执行，或手动 `bash /root/start-all.sh` |
-| 模型报「文件不存在」 | 实例未挂载公共库模型；在控制台挂载（见文末清单）后执行 `bash /root/start-all.sh` |
+| 重启实例后服务没起来 | 检查 `/tmp/autodl.sh.log` 与 `/root/qwen-studio-start.log`；确认 `/etc/autodl.sh` 存在且可执行；也可手动 `bash /root/start-all.sh` |
+| 模型报「文件不存在」 | 实例未挂载公共模型库（区域不支持时属正常）；两条路：① 创建实例时挂载公共模型；② 执行 `python3 /root/fetch_models.py` 从 hf-mirror 下载（约 16GB 到数据盘） |
 | 想改访问口令 | 停后端 → 用 `API_TOKEN` / `ADMIN_TOKEN` 环境变量启动（留空 = 免口令开箱即用） |
-| 端口 6006 打不开 | ComfyUI 仅调试用，非必选；确认已映射 6006 且等待模型加载完成 |
+| 端口 6006 打不开 | 设计如此：ComfyUI 默认仅内网监听，普通用户无需访问；开发者如需调试见上文「端口说明」 |
 
 ---
 
@@ -130,8 +135,10 @@ vae/
   qwen_image_2.1_vae_bf16.safetensors
 ```
 
-> 公共库挂载不占实例本地磁盘。若发布者已把模型直接打进镜像（软链接失效时
-> start-all.sh 会自动从公共库找回），用户仍需挂载对应公共库模型才能生成。
+> 公共库挂载不占实例本地磁盘。**注意**：AutoDL 公共模型库按区域挂载，部分区域实例上
+> 没有该挂载（只有 `/autodl-pub` 公开数据集）。此时软链接会失效，可执行
+> `python3 /root/fetch_models.py` 从 hf-mirror 下载模型到数据盘（文件名与工作流一致），
+> `start-all.sh` 会自动把软链接指向数据盘副本。
 
 ---
 
@@ -141,5 +148,8 @@ vae/
 - [ ] 顶栏实时性能条显示 GPU/显存/内存（服务在线）
 - [ ] t2i 出一张图；i2i + 蒙版出一张图；cutout 出一张透明 PNG
 - [ ] `/root/start-all.sh` 执行两遍不冲突（幂等：已在运行则跳过）
-- [ ] `/etc/rc.local` 存在且 `chmod +x`；`.bashrc` 含兜底行
-- [ ] 镜像备注写清：端口 6008、是否设口令（默认免口令）、公共库挂载清单、显卡建议
+- [ ] **`/etc/autodl.sh` 存在且 `chmod +x`**（AutoDL 官方开机钩子，rc.local 无效）
+- [ ] `/root/QwenImage2.1Studio` 仓库存在（发布镜像的审核要求）
+- [ ] 已执行 `bash /root/prepublish.sh`（清个人图片 + 日志 + AI 令牌）
+- [ ] 启动后执行 `python3 /root/QwenImage2.1Studio/tools/check_env.py` 全通过
+- [ ] 镜像备注写清：端口 6008、是否设口令（默认免口令）、模型获取方式、显卡建议
