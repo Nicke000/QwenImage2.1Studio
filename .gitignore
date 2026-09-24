@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 个人数据 / 运行产物
+ComfyUI/output/
+ComfyUI/input/
+*.log
+*.bak
+*.bak_v*
+
+# 凭据（绝不入库）
+.env
+*secret*.env
+aiopt_secret.env
+*_token*
+*_credentials*
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

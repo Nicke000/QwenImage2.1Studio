@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="0.5" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <!-- 圆角渐变底板 -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#g)"/>
+  <!-- 底部高光 -->
+  <rect x="2" y="46" width="60" height="16" rx="15" fill="rgba(255,255,255,0.14)"/>
+  <!-- 白色 Q 字母 -->
+  <text x="32" y="45" font-family="'Segoe UI','PingFang SC',Arial,sans-serif" font-size="40" font-weight="800" fill="#ffffff" text-anchor="middle">Q</text>
+  <!-- 右上角点缀星芒 -->
+  <path d="M50 10 l1.6 3.4 3.4 1.6 -3.4 1.6 -1.6 3.4 -1.6 -3.4 -3.4 -1.6 3.4 -1.6z" fill="#ffffff" opacity="0.9"/>
+  <!-- 左下角小光点 -->
+  <circle cx="12" cy="52" r="2.4" fill="url(#g2)"/>
+</svg>

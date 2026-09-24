@@ -1,0 +1,6 @@
+# Qwen Image Studio 运行依赖
+fastapi>=0.110
+uvicorn>=0.29
+aiohttp>=3.9
+pillow>=10.0
+pydantic>=2.5

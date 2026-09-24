@@ -1,0 +1,13 @@
+[Unit]
+Description=Qwen Image Studio (ComfyUI 6006 + FastAPI 6008)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash /root/start-all.sh
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

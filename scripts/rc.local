@@ -1,0 +1,5 @@
+#!/bin/bash
+# AutoDL 容器开机自启（PID1=bash /init/boot/boot.sh，无 systemd）
+# 由 /root/start-all.sh 拉起 ComfyUI(6006) + Qwen Image Studio(6008)
+bash /root/start-all.sh >/root/rc-local.log 2>&1 &
+exit 0
