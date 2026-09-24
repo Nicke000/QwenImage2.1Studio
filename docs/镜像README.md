@@ -67,12 +67,19 @@
 ## 基本环境
 
 - **Python**：3.12.3（`/root/miniconda3`）
-- **框架及版本**：ComfyUI 0.37.0（原生支持 Qwen-Image 2.1）；FastAPI + uvicorn（应用后端）
-- **CUDA 版本**：CUDA 12.x（AutoDL 基础镜像自带，`nvcc --version` 可查）
-- **PyTorch**：随 AutoDL 基础镜像（含 CUDA 支持）
+- **框架及版本**：PyTorch 2.8.0 + CUDA 12.8；ComfyUI 0.37.0（原生支持 Qwen-Image 2.1）；FastAPI + uvicorn（应用后端）
+- **CUDA 版本**：12.8
+- **PyTorch**：2.8.0（CUDA 12.8 构建）
 - **关键依赖**：fastapi / uvicorn / aiohttp / pillow / pydantic
 - **自定义节点**：ComfyUI-VOSR2（高清放大）、ComfyUI-Manager、Impact-Pack 等
 - **模型**：Qwen-Image-2.1 系列（软链接至 AutoDL 公共模型库）；VOSR2 放大权重随镜像内置
+
+### 磁盘建议
+
+| 项 | 建议 | 说明 |
+|---|---|---|
+| 系统盘 | **≥30GB（推荐 50GB）** | 镜像本身约 19GB；生成图片默认存系统盘，长期使用建议留足 |
+| 数据盘 | ≥20GB | 仅当需要 `fetch_models.py` 下载模型时使用（约 16GB） |
 
 ---
 
